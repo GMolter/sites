@@ -1,35 +1,34 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const basket = document.getElementById('basket');
-    const fallingObject = document.getElementById('falling-object');
-    let basketPosition = 50; // Start in the middle
-    let objectPosition = 0;
-    let objectLeft = Math.random() * 100;
+    const moles = document.querySelectorAll('.mole');
+    const scoreBoard = document.getElementById('score');
+    let score = 0;
 
-    function moveBasket(event) {
-        if (event.key === 'ArrowLeft' && basketPosition > 0) {
-            basketPosition -= 5;
-        } else if (event.key === 'ArrowRight' && basketPosition < 100) {
-            basketPosition += 5;
-        }
-        basket.style.left = basketPosition + '%';
+    function randomMole() {
+        const index = Math.floor(Math.random() * moles.length);
+        return moles[index];
     }
 
-    function dropObject() {
-        objectPosition += 2;
-        fallingObject.style.top = objectPosition + 'px';
-        fallingObject.style.left = objectLeft + '%';
+    function showMole() {
+        const mole = randomMole();
+        mole.style.display = 'block';
+        setTimeout(() => {
+            mole.style.display = 'none';
+        }, 800);
+    }
 
-        if (objectPosition > 380) {
-            if (Math.abs(basketPosition - objectLeft) < 10) {
-                alert('Caught!');
+    function startGame() {
+        setInterval(showMole, 1000);
+    }
+
+    moles.forEach(mole => {
+        mole.addEventListener('click', () => {
+            if (mole.style.display === 'block') {
+                score++;
+                scoreBoard.textContent = `Score: ${score}`;
+                mole.style.display = 'none';
             }
-            objectPosition = 0;
-            objectLeft = Math.random() * 100;
-        }
+        });
+    });
 
-        requestAnimationFrame(dropObject);
-    }
-
-    document.addEventListener('keydown', moveBasket);
-    dropObject();
+    startGame();
 });

@@ -6,8 +6,9 @@
     <title>Fun Notepad</title>
     <style>
         body {
-            background-color: #f0e68c; /* Fun background color */
+            background-color: #ffebcd; /* Fun background color */
             font-family: Arial, sans-serif;
+            overflow-x: hidden;
         }
         #notepad {
             width: 80%;
@@ -30,6 +31,35 @@
             border: none;
             cursor: pointer;
         }
+        #sidebar {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            top: 0;
+            right: 0;
+            background-color: #333;
+            overflow-x: hidden;
+            transition: 0.5s;
+            padding-top: 60px;
+            color: white;
+        }
+        #sidebar textarea {
+            width: 90%;
+            height: 300px;
+            margin: 10px;
+            background-color: #444;
+            color: #fff;
+            border: none;
+            resize: none;
+        }
+        #menuButton {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 30px;
+            cursor: pointer;
+            color: #333;
+        }
     </style>
 </head>
 <body>
@@ -39,27 +69,59 @@
         <button class="color-button" style="background-color: #32cd32;" onclick="changeColor('#32cd32')">Lime Green</button>
     </div>
     <textarea id="notepad" placeholder="Type here..."></textarea>
+    <div id="menuButton" onclick="toggleSidebar()">☰</div>
+    <div id="sidebar">
+        <textarea id="gmScript" placeholder="Type your GM script here..."></textarea>
+    </div>
     <script>
         function changeColor(color) {
             document.getElementById('notepad').style.color = color;
         }
 
-        document.getElementById('notepad').addEventListener('input', function(event) {
-            const content = event.target.value;
-            const funcPattern = /<func\s*=\s*{(\w+)}>/g;
-            let match;
-            while ((match = funcPattern.exec(content)) !== null) {
-                const funcName = match[1];
-                if (typeof window[funcName] === 'function') {
-                    window[funcName]();
-                }
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar.style.width === '250px') {
+                sidebar.style.width = '0';
+            } else {
+                sidebar.style.width = '250px';
             }
+        }
+
+        const functions = {};
+
+        document.getElementById('gmScript').addEventListener('input', function(event) {
+            const lines = event.target.value.split('\n');
+            lines.forEach(line => {
+                const funcMatch = line.match(/<func\s*=\s*(\w+)>:/);
+                if (funcMatch) {
+                    const funcName = funcMatch[1];
+                    const funcBody = lines.slice(lines.indexOf(line) + 1).join('\n');
+                    const npMatch = funcBody.match(/np\.write\s*=\s*"([^"]+)"/);
+                    if (npMatch) {
+                        functions[funcName] = npMatch[1];
+                    }
+                }
+            });
         });
 
-        // Example function
-        function exampleFunction() {
-            alert('Example function executed!');
-        }
+        document.getElementById('notepad').addEventListener('input', function(event) {
+            const content = event.target.value;
+            Object.keys(functions).forEach(funcName => {
+                if (content.endsWith(funcName)) {
+                    const suggestion = document.createElement('span');
+                    suggestion.style.color = 'lightgray';
+                    suggestion.textContent = functions[funcName];
+                    event.target.parentNode.insertBefore(suggestion, event.target.nextSibling);
+                    event.target.addEventListener('keydown', function(e) {
+                        if (e.key === 'Tab') {
+                            e.preventDefault();
+                            event.target.value += functions[funcName];
+                            suggestion.remove();
+                        }
+                    });
+                }
+            });
+        });
     </script>
 </body>
 </html>

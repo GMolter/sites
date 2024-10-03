@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fun Notepad</title>
+    <style>
+        body {
+            background-color: #f0e68c; /* Fun background color */
+            font-family: Arial, sans-serif;
+        }
+        #notepad {
+            width: 80%;
+            height: 400px;
+            margin: 20px auto;
+            padding: 10px;
+            border: 2px solid #333;
+            background-color: #fff;
+            color: #000;
+            font-size: 16px;
+            resize: none;
+        }
+        #controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .color-button {
+            padding: 10px;
+            margin: 5px;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <button class="color-button" style="background-color: #ff6347;" onclick="changeColor('#ff6347')">Tomato</button>
+        <button class="color-button" style="background-color: #4682b4;" onclick="changeColor('#4682b4')">Steel Blue</button>
+        <button class="color-button" style="background-color: #32cd32;" onclick="changeColor('#32cd32')">Lime Green</button>
+    </div>
+    <textarea id="notepad" placeholder="Type here..."></textarea>
+    <script>
+        function changeColor(color) {
+            document.getElementById('notepad').style.color = color;
+        }
+
+        document.getElementById('notepad').addEventListener('input', function(event) {
+            const content = event.target.value;
+            const funcPattern = /<func\s*=\s*{(\w+)}>/g;
+            let match;
+            while ((match = funcPattern.exec(content)) !== null) {
+                const funcName = match[1];
+                if (typeof window[funcName] === 'function') {
+                    window[funcName]();
+                }
+            }
+        });
+
+        // Example function
+        function exampleFunction() {
+            alert('Example function executed!');
+        }
+    </script>
+</body>
+</html>

@@ -6,20 +6,22 @@
     <title>Fun Notepad</title>
     <style>
         body {
-            background-color: #ffebcd; /* Fun background color */
-            font-family: Arial, sans-serif;
+            background-color: #2e2e2e; /* Dark background color */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow-x: hidden;
+            color: #f0f0f0;
         }
         #notepad {
             width: 80%;
             height: 400px;
             margin: 20px auto;
             padding: 10px;
-            border: 2px solid #333;
-            background-color: #fff;
-            color: #000;
+            border: 2px solid #555;
+            background-color: #1e1e1e;
+            color: #f0f0f0;
             font-size: 16px;
             resize: none;
+            position: relative;
         }
         #controls {
             text-align: center;
@@ -37,20 +39,21 @@
             position: fixed;
             top: 0;
             right: 0;
-            background-color: #333;
+            background-color: #444;
             overflow-x: hidden;
             transition: 0.5s;
             padding-top: 60px;
-            color: white;
+            color: #f0f0f0;
         }
         #sidebar textarea {
             width: 90%;
             height: 300px;
             margin: 10px;
-            background-color: #444;
-            color: #fff;
+            background-color: #2e2e2e;
+            color: #f0f0f0;
             border: none;
             resize: none;
+            position: relative;
         }
         #menuButton {
             position: absolute;
@@ -104,23 +107,60 @@
             });
         });
 
+        function createSuggestionBox(textarea, suggestionText) {
+            const suggestionBox = document.createElement('div');
+            suggestionBox.style.position = 'absolute';
+            suggestionBox.style.backgroundColor = '#333';
+            suggestionBox.style.color = 'lightgray';
+            suggestionBox.style.padding = '5px';
+            suggestionBox.style.borderRadius = '5px';
+            suggestionBox.style.zIndex = '1000';
+            suggestionBox.textContent = suggestionText;
+            textarea.parentNode.appendChild(suggestionBox);
+
+            const rect = textarea.getBoundingClientRect();
+            suggestionBox.style.top = `${rect.bottom + window.scrollY}px`;
+            suggestionBox.style.left = `${rect.left + window.scrollX}px`;
+
+            return suggestionBox;
+        }
+
         document.getElementById('notepad').addEventListener('input', function(event) {
             const content = event.target.value;
             Object.keys(functions).forEach(funcName => {
                 if (content.endsWith(funcName)) {
-                    const suggestion = document.createElement('span');
-                    suggestion.style.color = 'lightgray';
-                    suggestion.textContent = functions[funcName];
-                    event.target.parentNode.insertBefore(suggestion, event.target.nextSibling);
+                    const suggestionBox = createSuggestionBox(event.target, functions[funcName]);
                     event.target.addEventListener('keydown', function(e) {
                         if (e.key === 'Tab') {
                             e.preventDefault();
                             event.target.value += functions[funcName];
-                            suggestion.remove();
+                            suggestionBox.remove();
                         }
                     });
                 }
             });
+        });
+
+        // Auto-complete feature for GM script box
+        document.getElementById('gmScript').addEventListener('input', function(event) {
+            const content = event.target.value;
+            const keywords = ['<func', 'np.write', 'function', 'return'];
+            const lastWord = content.split(/\s+/).pop();
+            const suggestions = keywords.filter(keyword => keyword.startsWith(lastWord));
+
+            if (suggestions.length > 0) {
+                const suggestionBox = createSuggestionBox(event.target, suggestions[0]);
+                event.target.addEventListener('keydown', function(e) {
+                    if (e.key === 'Tab') {
+                        e.preventDefault();
+                        const words = content.split(/\s+/);
+                        words.pop();
+                        words.push(suggestions[0]);
+                        event.target.value = words.join(' ');
+                        suggestionBox.remove();
+                    }
+                });
+            }
         });
     </script>
 </body>
